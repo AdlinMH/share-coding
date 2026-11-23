@@ -23,7 +23,7 @@ Semua variabel bersifat server-only, tanpa awalan `NEXT_PUBLIC_`. Jangan commit 
 ## Perilaku dan batasan
 
 - Posting tampil dari yang terlama dibuat; mengedit tidak mengubah urutan.
-- Siswa memuat ulang halaman untuk melihat posting terbaru. Tidak ada realtime.
+- Halaman siswa memeriksa perubahan setiap 3 detik. Posting baru, edit, dan hapus tampil otomatis tanpa reload penuh. Pemeriksaan berhenti di tab tersembunyi dan langsung berjalan saat tab kembali dibuka. Pembaruan ditunda selama teks sedang diseleksi untuk disalin.
 - Rich-text editor Tiptap mendukung paragraf, daftar, tautan, dan blok kode.
 - Isi disimpan sebagai dokumen JSON terstruktur, divalidasi server, dan dirender tanpa HTML mentah. Tautan dibatasi HTTP/HTTPS.
 - Daftar menampilkan maksimal 200 posting. Versi awal ditujukan untuk satu pemateri dan satu daftar praktik.
@@ -31,7 +31,7 @@ Semua variabel bersifat server-only, tanpa awalan `NEXT_PUBLIC_`. Jangan commit 
 
 ## Database dan akses
 
-`supabase/setup.sql` membuat `share_coding_posts`, `owner_sessions`, `rate_limits`, fungsi rate limit, dan trigger timestamp. Tabel sesi dan RPC memakai skema TanyaAja! yang sudah tersedia. Cookie `share_coding_sesi` terpisah sehingga login browser kedua aplikasi tetap terpisah. Perubahan posting terlihat di kedua aplikasi setelah reload.
+`supabase/setup.sql` membuat `share_coding_posts`, `owner_sessions`, `rate_limits`, fungsi rate limit, dan trigger timestamp. Tabel sesi dan RPC memakai skema TanyaAja! yang sudah tersedia. Cookie `share_coding_sesi` terpisah sehingga login browser kedua aplikasi tetap terpisah. Share Coding memperbarui halaman siswa otomatis; halaman Share Coding milik pemateri diperbarui setelah aksi berhasil. TanyaAja! tetap memakai perilaku aslinya.
 
 Browser mengakses data melalui server Next.js. RLS aktif tanpa policy; role `anon` dan `authenticated` tidak memiliki hak tabel maupun RPC. Server memakai secret key dan memeriksa sesi pemilik pada setiap perubahan posting. Karena secret key melewati RLS, setiap query posting dan sesi membatasi `group_id` dari environment server. `GROUP_ID` bukan pengganti database terpisah untuk pemisahan keamanan.
 
@@ -64,3 +64,9 @@ Untuk Vercel, import repository sebagai proyek Next.js dan atur empat variabel s
 - Setup SQL diuji pada PostgreSQL 16 sementara: instalasi berulang, RLS/hak akses, operasi posting, validasi dokumen, dan rate limit lulus.
 - Login dan CRUD melalui aplikasi dengan Supabase sungguhan belum diverifikasi karena konfigurasi website baru belum tersedia. Tes integrasi Supabase dilewati secara eksplisit.
 - Fingerprint source TanyaAja! tidak berubah selama ekstraksi.
+
+## Pembaruan otomatis
+
+Endpoint publik `GET /api/posting-version` hanya mengembalikan fingerprint metadata posting untuk GROUP_ID server. Polling memakai ETag dan respons 304 jika tidak berubah. Isi posting tetap dirender di server. Gangguan jaringan mempertahankan daftar yang sudah tampil dan dicoba kembali; tidak diperlukan perubahan skema, publikasi Realtime, atau kunci Supabase di browser.
+
+Verifikasi pembaruan otomatis: lint, 14 tes validasi, dan build production lulus. Browser diuji dengan backend lokal terisolasi: posting baru, edit, hapus, ETag 304, penundaan selama seleksi kode, serta pemulihan setelah gangguan jaringan. Dokumen browser tetap sama selama pembaruan. Tidak ada posting uji yang ditulis ke Supabase bersama.

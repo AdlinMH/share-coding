@@ -3,6 +3,8 @@ import { Suspense } from "react";
 import { Code2 } from "lucide-react";
 import { AksiPosting, TombolKeluar, TombolTambah } from "@/components/share-coding/aksi-pemilik";
 import { IsiPosting } from "@/components/share-coding/isi-posting";
+import { PembaruanOtomatis } from "@/components/share-coding/pembaruan-otomatis";
+import { versiPosting } from "@/lib/versi-posting";
 import { PesanStatus } from "@/components/share-coding/pesan-status";
 import { TombolLogin } from "@/components/tombol-login";
 import { Card, CardContent } from "@/components/ui/card";
@@ -67,13 +69,14 @@ async function Isi() {
 
   return (
     <>
+      {!pemilik && <PembaruanOtomatis versiAwal={versiPosting(daftar)} />}
       <main className="flex flex-col gap-4">
         {pemilik && (
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border bg-card p-4">
             <div>
               <p className="text-lg font-semibold">Mode pemilik</p>
               <p className="text-sm text-muted-foreground">
-                Posting baru tampil paling bawah. Siswa perlu memuat ulang halaman.
+                Posting baru tampil paling bawah dan muncul otomatis di halaman siswa.
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -124,7 +127,7 @@ function Kosong({ pemilik }) {
       <p className="mt-1 text-sm text-muted-foreground">
         {pemilik
           ? "Klik Tambah posting untuk membagikan langkah pertama."
-          : "Kode dari pemateri akan muncul di sini. Muat ulang halaman sebentar lagi."}
+          : "Kode dari pemateri akan muncul otomatis di sini."}
       </p>
     </div>
   );
